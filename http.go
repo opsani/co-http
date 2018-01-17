@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"io/ioutil"
+	"os"
 
 	"time"
 	"crypto/hmac"
@@ -20,13 +21,17 @@ import (
 	const cfile = "/home/lka/dg/skopos/cfile.pem"
 
 var m []byte
+var dflt_qry string
 
 func reply(w http.ResponseWriter, r *http.Request) {
-	vals,_ := url.ParseQuery(r.URL.RawQuery) // map[string] []string ; NB: use vals.Get() to get the 1st value
 	var v string
 	var a, u bool
 	var data string
 	var http_status int
+
+	qry := r.URL.RawQuery
+	if qry == "" { qry = dflt_qry }
+	vals,_ := url.ParseQuery(qry) // map[string] []string ; NB: use vals.Get() to get the 1st value
 
 	http_status = 200
 
@@ -92,6 +97,9 @@ func main() {
 	var s http.Server
 	var err error
 	s.Addr = ":8080"
+
+	// default query from command line
+	if len(os.Args)>1 { dflt_qry = os.Args[1] }
 
 	/*
 	// We could call ListenAndServeTLS without initializing the TLS config, but we 

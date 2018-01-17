@@ -37,4 +37,12 @@ The following request parameters are supported and can be used in any combinatio
 - `alloc=N` allocate N pages (4096 bytes each). NOTE this only performs an allocation, does not touch the data (this will typically NOT cause the process to add the given number of pages to its working set). 
 - `use=1` access every page allocated with alloc=N (can be used in the same URL or separately, the last allocated array will be accessed). This will trigger bringing in all pages in the allocated array into the process' working set.
 
+When starting the server, one can also set a default query that will be used if the request URI has no query string in it:
+
+```
+docker run -d --network=t --name back co-http 'busy=20'
+```
+
+Now, when a request is made to `http://back:8080/`, it will behave as if the URI was `http://back:8080/?busy=20`.
+
 The requests return plain text data (content-type: text/plain) with a short summary of every executed operation. If an error was encountered, the HTTP status will be 400 and the payload data will include a line prefixed with 'err: ...'.
