@@ -5,7 +5,6 @@ A small http server for imitating simple workloads.
 Build a container with the server:
 
 ```
-go build http.go
 docker build -t co-http .
 ```
 
@@ -34,7 +33,7 @@ The following request parameters are supported and can be used in any combinatio
 - `busy=N` run a CPU-intensive operation N times (HMAC-SHA256 computation + forced garbage collector run)
 - `call=URL` execute HTTP GET 'URL'
 - `call=hostname` executes HTTP GET 'http://hostname:8080/' (value of `call` is assumed to be a hostname if it contains no slashes, otherwise it is treated as a URL, as above)
-- `alloc=N` allocate N pages (4096 bytes each). NOTE this only performs an allocation, does not touch the data (this will typically NOT cause the process to add the given number of pages to its working set). 
+- `alloc=N` allocate N pages (4096 bytes each). NOTE this only performs an allocation, does not touch the data (this will typically NOT cause the process to add the given number of pages to its working set).
 - `use=1` access every page allocated with alloc=N (can be used in the same URL or separately, the last allocated array will be accessed). This will trigger bringing in all pages in the allocated array into the process' working set.
 
 When starting the server, one can also set a default query that will be used if the request URI has no query string in it:
