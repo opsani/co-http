@@ -15,6 +15,9 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const cfile = "/home/lka/dg/skopos/cfile.pem"
@@ -22,7 +25,9 @@ const cfile = "/home/lka/dg/skopos/cfile.pem"
 var m []byte
 var dflt_qry string
 
-func reply(w http.ResponseWriter, r *http.Request) {
+type ApiHandler struct{}
+
+func (ApiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var v string
 	var a, u bool
 	var data string
@@ -118,7 +123,20 @@ func main() {
 	*/
 
 	// Handler - default
-	http.HandleFunc("/", reply)
+	counter := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "api_requests_total",
+			Help: "A counter for requests to the wrapped handler.",
+		},
+		[]string{"code", "method"},
+	)
+
+	prometheus.MustRegister(counter)
+	apiHandlerFn := promhttp.InstrumentHandlerCounter(counter, ApiHandler{})
+
+	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/", apiHandlerFn)
+
 	// err = s.ListenAndServeTLS("","")
 	runtime.GC()
 	err = s.ListenAndServe()
