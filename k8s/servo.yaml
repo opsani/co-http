@@ -1,0 +1,40 @@
+#apiVersion: apps/v1
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: servo
+  labels:
+    comp: servo
+    optune.ai/exclude: '1'  # don't tune servo
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      comp: servo
+  template:
+    metadata:
+      labels:
+        comp: servo
+    spec:
+      volumes:
+      - name: auth
+        secret:
+          secretName: optune-auth
+      containers:
+      - name: main
+        image: opsani/servo-k8s-ab
+        args:
+        - 'myapp1' #CHANGEME - application ID
+        - '--auth-token=/etc/optune-auth/token'
+        env:
+        - name: OPTUNE_ACCOUNT
+          value: 'myaccount'  #CHANGEME - account name
+        - name: OPTUNE_USE_DEFAULT_NAMESPACE
+          value: '1'
+        - name: AB_TEST_URL
+          value: 'http://c3:8080/'
+        volumeMounts:
+        - name: auth
+          mountPath: '/etc/optune-auth'
+          readOnly: true

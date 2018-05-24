@@ -45,3 +45,9 @@ docker run -d --network=t --name back co-http 'busy=20'
 Now, when a request is made to `http://back:8080/`, it will behave as if the URI was `http://back:8080/?busy=20`.
 
 The requests return plain text data (content-type: text/plain) with a short summary of every executed operation. If an error was encountered, the HTTP status will be 400 and the payload data will include a line prefixed with 'err: ...'.
+
+## Deploying 3-tier component stack with Kubernetes
+
+See `k8s` sub-directory for sample app deployment with Optune servo for Kubernetes and using Apache Benchmark.
+
+Replace fields next to `#CHANGEME` comment to set the app ID, account and auth token.

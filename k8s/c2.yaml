@@ -1,0 +1,48 @@
+---
+
+#apiVersion: apps/v1
+apiVersion: extensions/v1beta1
+kind: Deployment
+
+metadata:
+  name: c2
+  labels:
+    comp: c2
+
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      comp: c2
+  template:
+    metadata:
+      labels:
+        comp: c2
+    spec:
+      containers:
+      - name: main
+        image: opsani/co-http:latest
+        args: [ 'busy=200&call=http://c1:8080/' ]
+        resources:
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        ports:
+          - containerPort: 8080
+
+---
+
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: c2
+
+spec:
+  selector:
+    comp: c2
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
