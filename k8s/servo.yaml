@@ -2,20 +2,20 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: servo
+  name: optune-servo
   labels:
-    comp: servo
+    comp: optune-servo
     optune.ai/exclude: '1'  # don't tune servo
 spec:
   replicas: 1
   revisionHistoryLimit: 2
   selector:
     matchLabels:
-      comp: servo
+      comp: optune-servo
   template:
     metadata:
       labels:
-        comp: servo
+        comp: optune-servo
     spec:
       volumes:
       - name: auth
