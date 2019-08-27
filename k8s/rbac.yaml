@@ -1,4 +1,4 @@
-apiVersion: rbac.authorization.k8s.io/v1
+apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: optune-servo
@@ -9,7 +9,7 @@ kind: Role
 metadata:
   name: optune-servo
 rules:
-- apiGroups: ["extensions", "apps"]
+- apiGroups: ["extensions"]
   resources: ["deployments"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 
