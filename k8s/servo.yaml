@@ -17,6 +17,7 @@ spec:
       labels:
         comp: optune-servo
     spec:
+      serviceAccountName: optune-servo
       volumes:
       - name: auth
         secret:
