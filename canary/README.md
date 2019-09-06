@@ -25,3 +25,17 @@ kubectl port-forward service/app-svc 8001:80
 ```
 After deploying the `app.yaml` and forwarding that service port,
 `curl 127.0.0.1:8001` should give e.g. `busy for 1033073 us`.
+
+If you want to use images in your own Docker Image Repository:
+```
+minikube delete
+minikube start
+minikube addons configure registry-creds
+minikube addons enable registry-creds
+```
+And before you deploy, add the following tag (e.g. for ECR) to your container
+`spec:` section in your `deployment.yaml`.
+```
+imagePullSecrets:
+- name: awsecr-cred
+```
