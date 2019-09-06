@@ -7,21 +7,25 @@ metadata:
   name: main
   labels:
     comp: app
+    env: prod
     optune.ai/exclude: '1'  # don't tune main app
 
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       comp: app
+      env: prod
   template:
     metadata:
       labels:
         comp: app
+        env: prod
     spec:
       containers:
       - name: main-cnt
         image: opsani/co-http:latest
+        imagePullPolicy: Always
         args: [ 'busy=400' ]
         resources:
           limits:
@@ -39,6 +43,7 @@ metadata:
   name: canary
   labels:
     comp: app
+    env: canary
 
 spec:
   replicas: 1
@@ -46,10 +51,12 @@ spec:
   selector:
     matchLabels:
       comp: app
+      env: canary
   template:
     metadata:
       labels:
         comp: app
+        env: canary
     spec:
       containers:
       - name: canary-cnt
@@ -68,11 +75,29 @@ apiVersion: v1
 kind: Service
 
 metadata:
-  name: app-svc
+  name: app-main
 
 spec:
   selector:
     comp: app
+    env: prod
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+
+---
+
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: app-canary
+
+spec:
+  selector:
+    comp: app
+    env: canary
   ports:
   - protocol: TCP
     port: 80
