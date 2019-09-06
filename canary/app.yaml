@@ -1,27 +1,58 @@
 ---
 
-#apiVersion: apps/v1
 apiVersion: extensions/v1beta1
 kind: Deployment
 
 metadata:
   name: main
   labels:
-    comp: main
+    comp: app
+    optune.ai/exclude: '1'  # don't tune main app
 
 spec:
   replicas: 3
-  revisionHistoryLimit: 3
   selector:
     matchLabels:
-      comp: main
+      comp: app
   template:
     metadata:
       labels:
-        comp: main
+        comp: app
     spec:
       containers:
-      - name: main
+      - name: main-cnt
+        image: opsani/co-http:latest
+        args: [ 'busy=400' ]
+        resources:
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        ports:
+          - containerPort: 8080
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+
+metadata:
+  name: canary
+  labels:
+    comp: app
+
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      comp: app
+  template:
+    metadata:
+      labels:
+        comp: app
+    spec:
+      containers:
+      - name: canary-cnt
         image: opsani/co-http:latest
         args: [ 'busy=400' ]
         resources:
@@ -37,11 +68,11 @@ apiVersion: v1
 kind: Service
 
 metadata:
-  name: main
+  name: app-svc
 
 spec:
   selector:
-    comp: main
+    comp: app
   ports:
   - protocol: TCP
     port: 80
