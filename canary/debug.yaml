@@ -1,0 +1,30 @@
+---
+
+#apiVersion: apps/v1
+apiVersion: extensions/v1beta1
+kind: Deployment
+
+metadata:
+  name: debug
+  labels:
+    comp: debug
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      comp: debug
+  template:
+    metadata:
+      labels:
+        comp: debug
+    spec:
+      containers:
+      - name: debug
+        image: ubuntu:latest
+        command: ["/bin/bash"]
+        args: ["-c", "i=0; while [ 1 ]; do echo \"up for $i minutes\"; i=$((i+1)); sleep 60; done"]
+        resources:
+          limits:
+            cpu: 250m
+            memory: 256Mi
