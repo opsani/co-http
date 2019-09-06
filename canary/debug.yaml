@@ -8,6 +8,7 @@ metadata:
   name: debug
   labels:
     comp: debug
+    optune.ai/exclude: '1'  # don't tune debugger
 
 spec:
   replicas: 1
@@ -21,9 +22,10 @@ spec:
     spec:
       containers:
       - name: debug
-        image: ubuntu:latest
-        command: ["/bin/bash"]
-        args: ["-c", "i=0; while [ 1 ]; do echo \"up for $i minutes\"; i=$((i+1)); sleep 60; done"]
+        image: 424617791587.dkr.ecr.us-west-2.amazonaws.com/opsani/debugging-web:latest
+        # image: ubuntu:latest
+        # command: ["/bin/bash"]
+        # args: ["-c", "i=0; while [ 1 ]; do echo \"up for $i minutes\"; i=$((i+1)); sleep 60; done"]
         resources:
           limits:
             cpu: 250m
