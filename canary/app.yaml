@@ -44,6 +44,10 @@ metadata:
   labels:
     comp: app
     env: canary
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: '/metrics'
+    prometheus.io/port: '8080'
 
 spec:
   replicas: 1
@@ -75,12 +79,12 @@ apiVersion: v1
 kind: Service
 
 metadata:
-  name: app-main
+  name: app
 
 spec:
+  type: LoadBalancer
   selector:
     comp: app
-    env: prod
   ports:
   - protocol: TCP
     port: 80
@@ -93,11 +97,38 @@ kind: Service
 
 metadata:
   name: app-canary
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: '/metrics'
+    prometheus.io/port: '80'
 
 spec:
+  type: ClusterIP
   selector:
     comp: app
     env: canary
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+
+---
+
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: app-main
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: '/metrics'
+    prometheus.io/port: '80'
+
+spec:
+  type: ClusterIP
+  selector:
+    comp: app
+    env: prod
   ports:
   - protocol: TCP
     port: 80
