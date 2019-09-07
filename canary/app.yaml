@@ -133,3 +133,33 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 8080
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+
+metadata:
+  name: loadgen
+  labels:
+    comp: loadgen
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      comp: loadgen
+  template:
+    metadata:
+      labels:
+        comp: loadgen
+    spec:
+      containers:
+      - name: loadgen-cnt
+        image: tutum/curl
+        command: [ '/bin/sh' ]
+        args: [ '-c', 'while true; do curl app; done;' ]
+        resources:
+          limits:
+            cpu: 250m
+            memory: 256Mi
