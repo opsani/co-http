@@ -135,31 +135,29 @@ spec:
     targetPort: 8080
 
 ---
-
-apiVersion: extensions/v1beta1
-kind: Deployment
-
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: loadgen
   labels:
-    comp: loadgen
-
+    app: workload-simulation
+  name: loadgen
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      comp: loadgen
   template:
     metadata:
       labels:
-        comp: loadgen
+        app: workload-simulation
     spec:
       containers:
-      - name: loadgen-cnt
-        image: tutum/curl
-        command: [ '/bin/sh' ]
-        args: [ '-c', 'while true; do curl app; done;' ]
-        resources:
-          limits:
-            cpu: 250m
-            memory: 256Mi
+      - args:
+        - attack
+        - --base-load # max number of req/sec
+        - "50"
+        - --period # time between peak loads (sec)
+        - "120"
+        env:
+        - name: TARGET
+          value: http://app/
+        image: valencenet/majin:0.3.2
+        name: majin
+      restartPolicy: OnFailure
+---

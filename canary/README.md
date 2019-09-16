@@ -39,3 +39,7 @@ And before you deploy, add the following tag (e.g. for ECR) to your container
 imagePullSecrets:
 - name: awsecr-cred
 ```
+
+## To-Do
+1. Strip down the bloated `monitor.yaml`
+2. Reintroduce Grafana support
