@@ -21,7 +21,7 @@ Use `eksctl` to spin up an EKS cluster: `eksctl create cluster --name testing`
 ## Connect to your cluster
 
 1. `kubectx` should display the cluster name, highlighted.
-2. `k9s` should start the commandline GUI you will use to monitor the cluster.
+2. `k9s` should start the command-line GUI you will use to monitor the cluster.
 
 ## Deploy the 3-component app
 
@@ -39,7 +39,7 @@ kubectl apply -f c1.yaml -f c2.yaml -f c3.yaml \
 - `cX.yaml` files describe `co-http` app components.
 - `optune-auth.yaml` has secrets.
 - `rbac.yaml` allows servos in `Kubernetes 1.13+` to perform their cluster-level
-  responsabilities.
+  responsibilities.
 - `servo.yaml` is the Optune servo that measures and adjusts the `co-http` app
   using guidance from the Optune.ai server.
 
