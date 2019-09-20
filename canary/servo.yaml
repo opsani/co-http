@@ -25,6 +25,7 @@ spec:
       labels:
         comp: optune-servo
     spec:
+      serviceAccountName: prometheus-k8s
       volumes:
       - name: auth
         secret:
