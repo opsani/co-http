@@ -10,20 +10,20 @@ data:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: optune-servo
+  name: optune-servo-ab
   labels:
-    comp: optune-servo
+    comp: optune-servo-ab
     optune.ai/exclude: '1'  # don't tune servo
 spec:
   replicas: 1
   revisionHistoryLimit: 2
   selector:
     matchLabels:
-      comp: optune-servo
+      comp: optune-servo-ab
   template:
     metadata:
       labels:
-        comp: optune-servo
+        comp: optune-servo-ab
     spec:
       serviceAccountName: prometheus-k8s
       volumes:
