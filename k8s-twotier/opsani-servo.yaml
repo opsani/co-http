@@ -1,0 +1,80 @@
+---
+#apiVersion: apps/v1
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: opsani-servo
+  labels:
+    comp: opsani-servo
+    optune.ai/exclude: '1'  # don't tune servo
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      comp: opsani-servo
+  template:
+    metadata:
+      labels:
+        comp: opsani-servo
+    spec:
+      #serviceAccountName: opsani-servo # comment out for k8s versions <1.12
+      volumes:
+      - name: auth
+        secret:
+          secretName: optune-auth-co-http   #CHANGEME - application's token for Optune
+      - name: config
+        configMap:
+          name: opsani-servo-config
+      containers:
+      - name: main
+        image: opsani/servo-k8s-ab
+        args:
+        - 'co-http' #CHANGEME - application ID
+        - '--auth-token=/etc/optune-auth/token'
+        env:
+        - name: OPTUNE_ACCOUNT
+          value: 'dev.opsani.com'  #CHANGEME - account name
+        - name: OPTUNE_USE_DEFAULT_NAMESPACE
+          value: '1'
+        - name: AB_TEST_URL
+          value: 'http://twotier:80/'
+        volumeMounts:
+        - name: auth
+          mountPath: '/etc/optune-auth'
+          readOnly: true
+        - name: config
+          mountPath: /servo/config.yaml
+          subPath: config.yaml
+          readOnly: true
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opsani-servo-config
+data:
+  config.yaml: |
+    k8s:
+      application:
+        components:
+          front:
+            settings:
+              cpu:
+                min: 0.1
+                max: 2
+                step: 0.1
+              replicas:
+                min: 1
+                max: 4
+                step: 1
+          back:
+            settings:
+              cpu:
+                min: 0.1
+                max: 2
+                step: 0.1
+              replicas:
+                min: 1
+                max: 4
+                step: 1
