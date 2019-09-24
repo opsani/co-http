@@ -18,7 +18,7 @@ spec:
       labels:
         comp: opsani-servo
     spec:
-      #serviceAccountName: opsani-servo # comment out for k8s versions <1.12
+      serviceAccountName: opsani-servo # comment out for older k8s versions
       volumes:
       - name: auth
         secret:
@@ -37,6 +37,8 @@ spec:
           value: 'dev.opsani.com'  #CHANGEME - account name
         - name: OPTUNE_USE_DEFAULT_NAMESPACE
           value: '1'
+        - name: OPTUNE_PERF
+          value: opsani.time_slo(metrics['time per request'], target=100)
         - name: AB_TEST_URL
           value: 'http://twotier:80/'
         volumeMounts:
