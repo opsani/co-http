@@ -26,11 +26,11 @@ spec:
       - name: main
         image: opsani/servo-k8s-ab
         args:
-        - 'myapp1' #CHANGEME - application ID
+        - @@APP_ID@@            #CHANGEME - application ID
         - '--auth-token=/etc/optune-auth/token'
         env:
         - name: OPTUNE_ACCOUNT
-          value: 'myaccount'  #CHANGEME - account name
+          value: @@ACCOUNT@@    #CHANGEME - account name
         - name: OPTUNE_USE_DEFAULT_NAMESPACE
           value: '1'
         - name: AB_TEST_URL
