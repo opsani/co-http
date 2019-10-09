@@ -4,4 +4,4 @@ metadata:
   name: optune-auth
 type: Opaque
 data:
-  token: myauthtoken1  #CHANGEME: cat token | base64
+  token: @@OPTUNE_AUTH_TOKEN_BASE64@@  # CHANGEME: cat token | base64
