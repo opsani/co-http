@@ -1,0 +1,141 @@
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+
+metadata:
+  name: web-main
+  labels:
+    app: web
+
+spec:
+  replicas: 3
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: web
+      role: main
+
+  template:
+    metadata:
+      labels:
+        app: web
+        role: main
+      annotations:
+        prometheus.io/path: /stats/prometheus
+        prometheus.io/port: '9901'
+    spec:
+      containers:
+      - name: main
+        image: opsani/co-http:latest
+        imagePullPolicy: Always
+        args: [ 'busy=10' ]
+        resources:
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        ports:
+          - containerPort: 8080
+      - name: envoy
+        image: opsani/envoy-sidecar:latest
+        imagePullPolicy: Always
+        env:
+        - name: SERVICE_PORT
+          value: "8080"
+        - name: LISTEN_PORT
+          value: "80"
+        - name: METRICS_PORT
+          value: "9901"
+        ports:
+          - containerPort: 80
+            name: service       # service listener provided by Envoy proxy
+          - containerPort: 9901
+            name: metrics       # metrics provided by Envoy
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+
+metadata:
+  name: web-canary
+  labels:
+    app: web
+
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: web
+      role: opsani-canary
+      
+  template:
+    metadata:
+      labels:
+        app: web
+        role: opsani-canary
+      annotations:
+        prometheus.io/path: /stats/prometheus
+        prometheus.io/port: '9901'
+    spec:
+      containers:
+      - name: main
+        image: opsani/co-http:latest
+        imagePullPolicy: Always
+        args: [ 'busy=10' ]
+        resources:
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        ports:
+          - containerPort: 8080
+      - name: envoy
+        image: opsani/envoy-sidecar:latest
+        imagePullPolicy: Always
+        env:
+        - name: SERVICE_PORT
+          value: "8080"
+        - name: LISTEN_PORT
+          value: "80"
+        - name: METRICS_PORT
+          value: "9901"
+        ports:
+          - containerPort: 80
+            name: service       # service listener provided by Envoy proxy
+          - containerPort: 9901
+            name: metrics       # metrics provided by Envoy
+
+---
+
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: web
+  labels:
+    app: web
+
+spec:
+#  type: LoadBalancer
+  selector:
+    app: web
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80 # send to envoy proxy; change to 8080 to send to web directly
+
+# uncomment if Ingress is desired needed
+#---
+#apiVersion: extensions/v1beta1
+#kind: Ingress
+#metadata:
+#  name: web
+#  labels:
+#    app: web
+#spec:
+#  backend:
+#    serviceName: web
+#    servicePort: 80
+
