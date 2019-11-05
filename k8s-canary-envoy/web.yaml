@@ -24,6 +24,7 @@ spec:
       annotations:
         prometheus.io/path: /stats/prometheus
         prometheus.io/port: '9901'
+        prometheus.io/scrape: 'true'
     spec:
       containers:
       - name: main
@@ -78,6 +79,7 @@ spec:
       annotations:
         prometheus.io/path: /stats/prometheus
         prometheus.io/port: '9901'
+        prometheus.io/scrape: 'true'
     spec:
       containers:
       - name: main
