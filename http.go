@@ -103,6 +103,9 @@ func main() {
 	var s http.Server
 	var err error
 	s.Addr = ":8080"
+	if addr := os.Getenv("HTTP_ADDR"); addr != "" {
+		s.Addr = addr
+	}
 
 	// default query from command line
 	if len(os.Args) > 1 {
