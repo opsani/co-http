@@ -1,0 +1,13 @@
+---
+# Apply if Ingress is desired needed (and an Ingress controller exists)
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+ name: web
+ labels:
+   app: web
+spec:
+ backend:
+   serviceName: web
+   servicePort: 80
