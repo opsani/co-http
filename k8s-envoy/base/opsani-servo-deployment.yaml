@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opsani-servo
+  labels:
+    comp: opsani-servo
+    optune.ai/exclude: '1'  # don't tune servo
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      comp: opsani-servo
+  template:
+    metadata:
+      labels:
+        comp: opsani-servo
+    spec:
+      serviceAccountName: opsani-servo
+      volumes:
+      - name: auth
+        secret:
+          secretName: optune-auth
+      - name: config
+        configMap:
+          name: opsani-servo-config
+      containers:
+      - name: main
+        image: opsani/servo-k8s-prom-hey:latest
+        args:
+        - '@@APP_ID@@' #CHANGEME - application ID
+        - '--auth-token=/etc/optune-auth/token'
+        env:
+        - name: OPTUNE_ACCOUNT
+          value: '@@ACCOUNT@@'  #CHANGEME - account name
+        - name: OPTUNE_USE_DEFAULT_NAMESPACE
+          value: '1'
+        volumeMounts:
+        - name: auth
+          mountPath: '/etc/optune-auth'
+          readOnly: true
+        - name: config
+          mountPath: /servo/config.yaml
+          subPath: config.yaml
+          readOnly: true
+        resources:
+          limits:
+            cpu: 250m
+            memory: 256Mi
+          requests:
+            cpu: 125m
+            memory: 128Mi

@@ -1,0 +1,66 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: web-main
+  labels:
+    app: web
+spec:
+  replicas: 3
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: web
+      role: main
+  template:
+    metadata:
+      labels:
+        app: web
+        role: main
+      annotations:
+        prometheus.io/path: /stats/prometheus
+        prometheus.io/port: '9901'
+        prometheus.io/scrape: 'true'
+    spec:
+      containers:
+      - name: main
+        image: opsani/co-http:latest
+        imagePullPolicy: Always
+        args: [ 'busy=10' ]
+        resources:
+          limits:
+            cpu: 250m
+            memory: 256Mi
+          requests:
+            cpu: 125m
+            memory: 128Mi
+        ports:
+          - containerPort: 8080
+      - name: envoy
+        image: opsani/envoy-sidecar:latest
+        imagePullPolicy: Always
+        env:
+        - name: SERVICE_PORT
+          value: "8080"
+        - name: LISTEN_PORT
+          value: "80"
+        - name: METRICS_PORT
+          value: "9901"
+        ports:
+          - containerPort: 80
+            name: service       # service listener provided by Envoy proxy
+          - containerPort: 9901
+            name: metrics       # metrics provided by Envoy
+        resources:
+          limits:
+            cpu: 250m
+            memory: 256Mi
+          requests:
+            cpu: 125m
+            memory: 128Mi
+
+
+
+
+

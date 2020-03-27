@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opsani-servo
+
+spec:
+  template:
+    spec:
+      containers:
+        - name: main
+          imagePullPolicy: Always
+          image: rstarmer/servo-k8s-prom-hey
+          args:
+          - ${CO_APP} # REPLACE
+          - '--auth-token=/etc/optune-auth/token'
+          env:
+          - name: OPTUNE_ACCOUNT
+            value: ${CO_ACCOUNT} # REPLACE
