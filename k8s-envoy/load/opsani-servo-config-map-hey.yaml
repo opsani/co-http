@@ -30,14 +30,14 @@ data:
         main_median_response_time:
           query: avg(histogram_quantile(0.5,rate(envoy_cluster_external_upstream_rq_time_bucket{app="web",role="main"}[1m])))
           unit: ms
-      control:
-        warmup: 0
-        duration: 300
-        past: 60
-    hey:
-      load:
-        test_url: 'http://web:80'
-        service: web
-        n_clients: 30
-        n_requests: 10000000
-        t_limit: 300
+    #   control:
+    #     warmup: 0
+    #     duration: 300
+    #     past: 60
+    # hey:
+    #   load:
+    #     test_url: 'http://web:80'
+    #     service: web
+    #     n_clients: 30
+    #     n_requests: 10000000
+    #     t_limit: 300

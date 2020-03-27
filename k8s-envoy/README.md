@@ -4,6 +4,33 @@
 * Saturation style load generation using Vegeta load generator
 * Prometheus for metrics (using the provided Prometheus manifests)
 
+## Temporary Instructions
+
+There are a few changes still needed in the related servo plugins that are in process of being addressed. In advance of that:
+
+1. Use the rstarmer/servo-k8s-prom-hey:latest image
+2. In addition to the load/servo-config-map-hey.yaml, you will need to add an override config (use coctl) (sample in coconfig.yaml)
+
+    ```yaml
+    adjustment:
+        control: {}
+    measurement:
+        control:
+            duration: 300
+            load:
+                n_clients: 30
+                n_requests: 10000000
+                service: web
+                t_limit: 300
+                test_url: http://web:80
+            past: 60
+            warmup: 0
+    optimization:
+        perf: metrics['main_request_rate']
+    ```
+
+3. Do not uncomment the control and hey sections from the config-map file until the updates have been applied.
+
 ## Assumptions
 
 * Servo and App will live in a K8s namespace that matches the Opsani APP_ID allocated to your project.

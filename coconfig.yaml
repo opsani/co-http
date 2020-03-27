@@ -1,0 +1,15 @@
+adjustment:
+  control: {}
+measurement:
+  control:
+    duration: 300
+    load:
+      n_clients: 30
+      n_requests: 10000000
+      service: web
+      t_limit: 300
+      test_url: http://web:80
+    past: 60
+    warmup: 0
+optimization:
+  perf: metrics['main_request_rate']
