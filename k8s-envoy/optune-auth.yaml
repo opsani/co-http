@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: Secret
-metadata:
-  name: optune-auth
-type: Opaque
-data:
-  token: @@OPTUNE_AUTH_TOKEN_BASE64@@  # CHANGEME: cat token | base64
