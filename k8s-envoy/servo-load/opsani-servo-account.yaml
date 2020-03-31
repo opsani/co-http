@@ -9,10 +9,10 @@ spec:
       containers:
         - name: main
           imagePullPolicy: Always
-          image: rstarmer/servo-k8s-prom-hey
+          image: rstarmer/servo-k8s-prom-vegeta
           args:
-          - ${CO_APP} # REPLACE
+          - robert
           - '--auth-token=/etc/optune-auth/token'
           env:
           - name: OPTUNE_ACCOUNT
-            value: ${CO_ACCOUNT} # REPLACE
+            value: kumul.us

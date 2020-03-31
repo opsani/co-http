@@ -4,6 +4,42 @@
 * Saturation style load generation using Vegeta load generator
 * Prometheus for metrics (using the provided Prometheus manifests)
 
+## Coctl - manage config overrides and optimization start/stop/restart
+
+While much of the control is available via the Opsani UI (optune.ai) or by an appropriately configured config.yaml document (or configmap in this case) for the Servo, there are certain times whne it's convenient to use a command line tool to update configuration overrides. We've developed a light weight python based tool to support overriding the initial servo configuration, and to update some
+of the optimization settings.
+
+The tool is available as source here[https://github.com/opsani/coctl], or as a docker image (`docker pull opsani/coctl`).
+
+To use Coctl, you will likely want to set three environment variables:
+  CO_TOKEN={your Opsani app token}
+  CO_DOMAIN={your Opsani account name}
+  CO_APP={your Opsani app name}
+
+Often it is convenient to include these environment parameters in a per-application file and source the appropriate file if working with multiple applications:
+
+```bash
+cat > ~/opsani-app.env <<EOF
+export CO_TOKEN=REPLACE_WITH_YOUR_OPSANI_APP_TOKEN
+export CO_DOMAIN=REPLACE_WITH_YOUR_OPSANI_ACCOUNT
+export CO_APP=REPLACE_WITH_YOUR_OPSANI_APP_ID
+EOF
+```
+
+And then source this file:
+
+```bash
+source ~/opsani-app.env
+```
+
+and an alias makes life easier if you're running the docker container as an app:
+
+```bash
+alias coctl="docker run -it --rm --name coctl -v \$(pwd)/:/work/ -e CO_TOKEN=\$CO_TOKEN -e CO_DOMAIN=\$CO_DOMAIN -e CO_APP=\$CO_APP opsani/coctl:latest "
+```
+
+It is often useful to include this, and the previous "source" command in your .bashrc or .bash_profile file in order to ensure it's always available.
+
 ## Temporary Instructions
 
 There are a few changes still needed in the related servo plugins that are in process of being addressed. In advance of that:
@@ -17,20 +53,12 @@ There are a few changes still needed in the related servo plugins that are in pr
     measurement:
         control:
             duration: 300
-            load:
-                n_clients: 30
-                n_requests: 10000000
-                service: web
-                t_limit: 300
-                test_url: http://web:80
-            past: 60
+            load: {}
             warmup: 0
     optimization:
         perf: metrics['main_request_rate']
     ```
-
-3. Do not uncomment the control and hey sections from the config-map file until the updates have been applied.
-
+    
 ## Assumptions
 
 * Servo and App will live in a K8s namespace that matches the Opsani APP_ID allocated to your project.
@@ -41,6 +69,8 @@ There are a few changes still needed in the related servo plugins that are in pr
 Currently the Opsani API uses a TOKEN for authentication, and, assuming you've set an environment variable (CO_TOKEN is very useful for this see the coctl section below) with that TOKEN you can create the secret needed by the Servo Deployment with:
 
 ```bash
+kubectl create namespace ${CO_APP}
+kubectl config set-context --current --namespace=${CO_APP}
 kubectl create secret generic optune-auth --from-literal=token=${CO_TOKEN}
 ```
 
@@ -53,26 +83,26 @@ As this environment is set up to use kustomize (which is incorporated into the k
   If you set these parameters based on the `coctl` section below, you can create this file with:
 
   ```bash
-  cat > load/opsani-servo-account.yaml <<EOF
-  apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: opsani-servo
+cat > load/opsani-servo-account.yaml <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opsani-servo
 
-  spec:
-    template:
-      spec:
-        containers:
-          - name: main
-            imagePullPolicy: Always
-            image: rstarmer/servo-k8s-prom-hey
-            args:
-            - ${CO_APP}
-            - '--auth-token=/etc/optune-auth/token'
-            env:
-            - name: OPTUNE_ACCOUNT
-              value: ${CO_ACCOUNT}
-  EOF
+spec:
+  template:
+    spec:
+      containers:
+        - name: main
+          imagePullPolicy: Always
+          image: rstarmer/servo-k8s-prom-hey
+          args:
+          - ${CO_APP}
+          - '--auth-token=/etc/optune-auth/token'
+          env:
+          - name: OPTUNE_ACCOUNT
+            value: ${CO_DOMAIN}
+EOF
   ```
 
 2. Update the configuration template in load/opsani-servo-config-map-hey.yaml
@@ -111,38 +141,3 @@ And if the optimization isn't running (e.g. you're seeing "SLEEP" responses in t
 coctl restart
 ```
 
-## Coctl - manage config overrides and optimization start/stop/restart
-
-We've developed a light weight python based tool to support overriding the initial servo configuration, and to update some
-of the optimization settings.
-
-The tool is available as source here[https://github.com/opsani/coctl], or as a docker image (`docker pull opsani/coctl`).
-
-To use Coctl, you will likely want to set three environment variables:
-  CO_TOKEN={your Opsani app token}
-  CO_ACCOUNT={your Opsani account name}
-  CO_APP={your Opsani app name}
-
-Often it is convenient to include these environment parameters in a per-application file and source the appropriate file if working with multiple applications:
-
-```bash
-cat > ~/opsani-app.env <<EOF
-export CO_TOKEN=REPLACE_WITH_YOUR_OPSANI_APP_TOKEN
-export CO_ACCOUNT=REPLACE_WITH_YOUR_OPSANI_ACCOUNT
-export CO_APP=REPLACE_WITH_YOUR_OPSANI_APP_ID
-EOF
-```
-
-And then source this file:
-
-```bash
-source ~/opsani-app.env
-```
-
-and an alias makes life easier if you're running the docker container as an app:
-
-```bash
-alias coctl="docker run -it --rm --name coctl -v \$(pwd)/:/work/ -e CO_TOKEN=\$CO_TOKEN -e CO_DOMAIN=\$CO_DOMAIN -e CO_APP=\$CO_APP coctl:latest "
-```
-
-It is often useful to include this, and the previous "source" command in your .bashrc or .bash_profile file in order to ensure it's always available.

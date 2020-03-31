@@ -7,11 +7,11 @@ metadata:
     app: web
 
 spec:
-#  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: web
   ports:
   - name: http
     protocol: TCP
     port: 80
-    targetPort: 80 # send to envoy proxy; change to 8080 to send to web directly
+    targetPort: 80

@@ -5,7 +5,3 @@ resources:
   - opsani-servo-configmap.yaml
   - opsani-servo-deployment.yaml
   - opsani-servo-rbac.yaml
-  - prometheus.yaml
-  - web-deployment.yaml
-#  - web-ingress.yaml
-  - web-service.yaml

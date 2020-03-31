@@ -2,12 +2,7 @@ adjustment:
   control: {}
 measurement:
   control:
-    load:
-      test_url: 'http://web:80'
-      service: web
-      n_clients: 30
-      n_requests: 10000000
-      t_limit: 300
+    load: {}
     warmup: 0
     duration: 300
     past: 60
