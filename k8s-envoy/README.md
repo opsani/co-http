@@ -40,24 +40,19 @@ alias coctl="docker run -it --rm --name coctl -v \$(pwd)/:/work/ -e CO_TOKEN=\$C
 
 It is often useful to include this, and the previous "source" command in your .bashrc or .bash_profile file in order to ensure it's always available.
 
-## Temporary Instructions
+While most of the configuration is handled properly in the config.yaml embeded in the opsani-servo-config-vegata.yaml document, we do have to ensure that a) the measurement.control.duration parameter is set to an appropriate duration (300 seconds is a common first measurement target, and can be matched to the duration in the vegeta config).  And we need to ensure we are gathering a performance metric that matches with a metric being deliverd by prometheus.  We do this in the configuratin override that can be managed either via the UI, or via the API (and that via coctl).
 
-There are a few changes still needed in the related servo plugins that are in process of being addressed. In advance of that:
-
-1. Use the rstarmer/servo-k8s-prom-hey:latest image
-2. In addition to the load/servo-config-map-hey.yaml, you will need to add an override config (use coctl) (sample in coconfig.yaml)
-
-    ```yaml
-    adjustment:
-        control: {}
-    measurement:
-        control:
-            duration: 300
-            load: {}
-            warmup: 0
-    optimization:
-        perf: metrics['main_request_rate']
-    ```
+```yaml
+adjustment:
+    control: {}
+measurement:
+    control:
+        duration: 300
+        load: {}
+        warmup: 0
+optimization:
+    perf: metrics['main_request_rate']
+```
 
 ## Assumptions
 
