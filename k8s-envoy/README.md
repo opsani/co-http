@@ -168,7 +168,7 @@ data:
     vegeta:
       rate: 30000/m
       duration: 5m
-      target: GET http://${AWS_SLB}:80/
+      target: GET http://${AWS_SLB:-web}:80/
       workers: 50
       max-workers: 100
       interactive: true
@@ -194,7 +194,8 @@ If you make a change to the configmap (update the document), re-apply with `kube
 ```bash
 kubectl delete pod $(kubectl get pods -o jsonpath='{.items[?(@.metadata.labels.comp=="opsani-servo")].metadata.name}')
 ```
-And you can also review the logs in the Opsani UI[https://optune.ai]
+
+And you can also review the logs in the Opsani UI[<https://optune.ai>]
 
 Changes to the load generator can be made by updating the opsani-servo-config-map-hay.yaml document, and re-applying the kustomization:
 
