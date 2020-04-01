@@ -126,7 +126,7 @@ kubectl apply -k ingress-aws-l4
 Ensure that the ingress is up and running and has a target defined:
 
 ```bash
-AWS_SLB=$(kubectl get ingress web -o jsonpath='{.status.loadBalancer.ingress[0]}')
+AWS_SLB=$(kubectl get ingress web -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 cat >> servo-load/opsani-servo-config-map-vegeta.yaml <<EOF
 apiVersion: v1
 kind: ConfigMap

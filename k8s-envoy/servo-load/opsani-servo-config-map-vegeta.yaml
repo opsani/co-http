@@ -33,7 +33,7 @@ data:
     vegeta:
       rate: 30000/m
       duration: 5m
-      target: GET http://abedce9d672dc11ea90d5064f22c1252-668236351.us-west-2.elb.amazonaws.com:80/
+      target: GET http://web:80/
       workers: 50
       max-workers: 100
       interactive: true
