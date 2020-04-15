@@ -75,9 +75,9 @@ As this environment is set up to use kustomize (which is incorporated into the k
 
 1. Update the opsani-servo-account.yaml document to include both the CO_ACCOUNT (usually your coroporate domain name) and your CO_APP id.
 
-  If you set these parameters based on the `coctl` section, you can create this file with:
+If you set these parameters based on the `coctl` section, you can create this file with:
 
-  ```bash
+```bash
 cat > servo-load/opsani-servo-account.yaml <<EOF
 apiVersion: apps/v1
 kind: Deployment
@@ -90,7 +90,7 @@ spec:
       containers:
         - name: main
           imagePullPolicy: Always
-          image: rstarmer/servo-k8s-prom-hey
+          image: opsani/servo-k8s-prom-vegeta
           args:
           - ${CO_APP}
           - '--auth-token=/etc/optune-auth/token'
@@ -98,15 +98,15 @@ spec:
           - name: OPTUNE_ACCOUNT
             value: ${CO_DOMAIN}
 EOF
-  ```
+```
 
 2. Update the configuration template in servo-load/opsani-servo-config-map-vegeta.yaml
 
-  You only need to modify the configurations if you are not using the default "web" application name or if you need to change the labels being used to select metrics from the appropraite pods.
+You only need to modify the configurations if you are not using the default "web" application name or if you need to change the labels being used to select metrics from the appropraite pods.
 
-  You may also need to change the load generator and metrics gathering duration(s)
+You may also need to change the load generator and metrics gathering duration(s)
 
-  Note that the config.yaml needs to have the whole config file defined/updated due to the way Kustomize matchs parameters (the file is _one_ parameter to Kustomize)
+Note that the config.yaml needs to have the whole config file defined/updated due to the way Kustomize matchs parameters (the file is _one_ parameter to Kustomize)
 
 ## Launch the enviroment
 

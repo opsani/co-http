@@ -9,7 +9,7 @@ spec:
       containers:
         - name: main
           imagePullPolicy: Always
-          image: rstarmer/servo-k8s-prom-vegeta
+          image: opsani/servo-k8s-prom-vegeta
           args:
           - robert
           - '--auth-token=/etc/optune-auth/token'
