@@ -1,0 +1,9 @@
+"optimization":
+  "mode": "canary"
+  "perf": "(canary_request_rate/canary_inst_count)/(main_request_rate/prod_inst_count)"
+  "canary_inst_count": 1
+  "prod_inst_count": 3
+  "canary_inst_perf": "canary_request_rate"
+  "prod_inst_perf": "main_request_rate"
+  "baseline":
+     "inst_cost": 0.01

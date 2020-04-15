@@ -59,7 +59,7 @@ optimization:
 * Servo and App will live in a K8s namespace that matches the Opsani APP_ID allocated to your project.
 * Prometheus will reside in the opsani-monitoring namespace (which will be created) or the URL for prometheus to interact with the app under test will be provided.
 * A service-account with a deployment and pod management role will be created for both default and metrics namespaces
-* By default, load will be generated using the "vegeta" load generator app simply making requests against the application endpoint.  Advanced load generation can be accomplished in conjunction with an Opsani Customer Engineer.
+* By default, load will be generated using the "hey" load generator app simply making requests against the application endpoint.  Advanced load generation can be accomplished in conjunction with an Opsani Customer Engineer.
 
 Currently the Opsani API uses a TOKEN for authentication, and, assuming you've set an environment variable (CO_TOKEN is very useful for this see the coctl section below) with that TOKEN you can create the secret needed by the Servo Deployment with:
 
@@ -75,9 +75,9 @@ As this environment is set up to use kustomize (which is incorporated into the k
 
 1. Update the opsani-servo-account.yaml document to include both the CO_ACCOUNT (usually your coroporate domain name) and your CO_APP id.
 
-If you set these parameters based on the `coctl` section, you can create this file with:
+  If you set these parameters based on the `coctl` section, you can create this file with:
 
-```bash
+  ```bash
 cat > servo-load/opsani-servo-account.yaml <<EOF
 apiVersion: apps/v1
 kind: Deployment
@@ -90,7 +90,7 @@ spec:
       containers:
         - name: main
           imagePullPolicy: Always
-          image: opsani/servo-k8s-prom-vegeta
+          image: rstarmer/servo-k8s-prom-hey
           args:
           - ${CO_APP}
           - '--auth-token=/etc/optune-auth/token'
@@ -98,15 +98,15 @@ spec:
           - name: OPTUNE_ACCOUNT
             value: ${CO_DOMAIN}
 EOF
-```
+  ```
 
 2. Update the configuration template in servo-load/opsani-servo-config-map-vegeta.yaml
 
-You only need to modify the configurations if you are not using the default "web" application name or if you need to change the labels being used to select metrics from the appropraite pods.
+  You only need to modify the configurations if you are not using the default "web" application name or if you need to change the labels being used to select metrics from the appropraite pods.
 
-You may also need to change the load generator and metrics gathering duration(s)
+  You may also need to change the load generator and metrics gathering duration(s)
 
-Note that the config.yaml needs to have the whole config file defined/updated due to the way Kustomize matchs parameters (the file is _one_ parameter to Kustomize)
+  Note that the config.yaml needs to have the whole config file defined/updated due to the way Kustomize matchs parameters (the file is _one_ parameter to Kustomize)
 
 ## Launch the enviroment
 
@@ -163,7 +163,7 @@ data:
     vegeta:
       rate: 30000/m
       duration: 5m
-      target: GET http://web:80/
+      target: GET http://${AWS_SLB:-web}:80/
       workers: 50
       max-workers: 100
       interactive: true
