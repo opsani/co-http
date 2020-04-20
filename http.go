@@ -49,7 +49,6 @@ func (ApiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		for i := 0; i < int(c); i++ {
 			mac.Write(k)
 			mac.Write(k)
-			runtime.GC()
 		}
 		data += fmt.Sprintf("busy for %d us\n", time.Now().Sub(t)/1000)
 	}
