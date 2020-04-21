@@ -1,4 +1,4 @@
-FROM golang:1.13.6 AS builder
+FROM golang:1.14.2 AS builder
 COPY http.go .
 RUN go get -v -d .
 RUN go build http.go
