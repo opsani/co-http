@@ -1,12 +1,9 @@
-FROM golang:1.13.6 AS builder
-COPY http.go .
-RUN go get -v -d .
-RUN go build http.go
+FROM rust:1.40 as builder
+WORKDIR /usr/src/myapp
+COPY . .
+RUN cargo install --path .
 
-FROM ubuntu:16.04
-
-COPY --from=builder /go/http /usr/local/bin/http
-
-ENV HTTP_ADDR=:8080
-
-ENTRYPOINT ["/usr/local/bin/http"]
+FROM debian:buster-slim
+#RUN apt-get update && apt-get install -y extra-runtime-dependencies
+COPY --from=builder /usr/local/cargo/bin/co-http /usr/local/bin/co-http
+CMD ["co-http"]
