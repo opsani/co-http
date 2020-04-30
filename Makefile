@@ -3,7 +3,7 @@ TAG?=latest
 REGION=us-west-2
 
 build:
-	$(eval USERID=$(shell aws iam get-user  --output text  --query 'User.UserId'))
+	$(eval USERID=$(shell aws sts get-caller-identity  --output text --query "Account"))
 	docker build . -t cohttp:$(TAG)
 	docker tag cohttp:$(TAG) $(USERID).dkr.ecr.$(REGION).amazonaws.com/cohttp:$(TAG)
 	docker push $(USERID).dkr.ecr.$(REGION).amazonaws.com/cohttp:$(TAG)
