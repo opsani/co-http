@@ -1,12 +1,13 @@
-FROM golang:1.13.6 AS builder
-COPY http.go .
+FROM golang:1.18-alpine AS builder
+WORKDIR /src
+COPY http.go go.mod go.sum .
 RUN go get -v -d .
-RUN go build http.go
+RUN CGO_ENABLED=0 go build http.go
 
-FROM ubuntu:16.04
+FROM scratch
 
-COPY --from=builder /go/http /usr/local/bin/http
+COPY --from=builder /src/http /
 
 ENV HTTP_ADDR=:8080
 
-ENTRYPOINT ["/usr/local/bin/http"]
+ENTRYPOINT ["/http"]
