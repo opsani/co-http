@@ -57,3 +57,13 @@ docker run -d -p 8080:8081 -e HTTP_ADDR=:8081 --name front co-http
 See `k8s` sub-directory for sample app deployment with Optune servo for Kubernetes and using Apache Benchmark.
 
 Replace fields next to `#CHANGEME` comment to set the app ID, account and auth token.
+
+## Deploying with OpenTelemetry
+
+Use the `otel` branch. This may change.
+
+Only traces are supported.
+
+By default, OpenTelemetry output is sent to the log. If the `OTEL_EXPORTER_OTLP_ENDPOINT` is specified, then OpenTelemetry output is sent to the specified host/post, using OpenTelemetry over http.
+
+The Prometheus exporter is available even in the OpenTelemetry branch; the `/metrics` endpoint is a tracked separately from the main (root) endpoint for the purpose of traces.

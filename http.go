@@ -1,26 +1,27 @@
 package main
 
 import (
-	"net/http"
-	//	"crypto/tls"
-	//	"crypto/x509"
+	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"log/slog"
+	"net"
+	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
 	"runtime"
 	"strconv"
 	"strings"
-
-	"crypto/hmac"
-	"crypto/sha256"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
-
-const cfile = "/home/lka/dg/skopos/cfile.pem"
 
 var m []byte
 var dflt_qry string
@@ -64,7 +65,7 @@ func (ApiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http_status = 400
 		} else {
 			var d []byte
-			d, err = ioutil.ReadAll(rsp.Body) // TODO: err
+			d, err = io.ReadAll(rsp.Body) // TODO: err
 			data += "call: " + string(d)
 		}
 	}
@@ -100,11 +101,12 @@ func (ApiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	var s http.Server
-	var err error
-	s.Addr = ":8080"
+	// --- Parse command line
+
+	// server address
+	serverAddr := ":8080"
 	if addr := os.Getenv("HTTP_ADDR"); addr != "" {
-		s.Addr = addr
+		serverAddr = addr
 	}
 
 	// default query from command line
@@ -112,20 +114,25 @@ func main() {
 		dflt_qry = os.Args[1]
 	}
 
-	/*
-		// We could call ListenAndServeTLS without initializing the TLS config, but we
-		// set it up explicitly here anyway, to allow adding things like client cert verify, etc. later
-		var tlscfg tls.Config
-		tlscfg.Certificates = make([]tls.Certificate, 1)
-		tlscfg.Certificates[0], err = tls.LoadX509KeyPair(cfile,cfile)
-		// @@ err
-		// pre-init the leaf cert, too (so it isn't parsed every time when serving requests)
-		tlscfg.Certificates[0].Leaf, err = x509.ParseCertificate(tlscfg.Certificates[0].Certificate[0])
-		// @@ err
-		s.TLSConfig = &tlscfg
-	*/
+	// --- Prepare for serving
 
-	// Handler - default
+	// Handle SIGINT (CTRL+C) gracefully.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
+	// Set up OpenTelemetry.
+	otelShutdown, err := setupOTelSDK(ctx)
+	if err != nil {
+		die("failed to set up OpenTelemetry:", err)
+		return // keep linters happy
+	}
+
+	// Handle shutdown properly so nothing leaks.
+	defer func() {
+		err = errors.Join(err, otelShutdown(context.Background()))
+	}()
+
+	// setup a Prometheus metric
 	counter := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "api_requests_total",
@@ -133,15 +140,63 @@ func main() {
 		},
 		[]string{"code", "method"},
 	)
-
 	prometheus.MustRegister(counter)
 	apiHandlerFn := promhttp.InstrumentHandlerCounter(counter, ApiHandler{})
 
-	http.Handle("/metrics", promhttp.Handler())
-	http.HandleFunc("/", apiHandlerFn)
-
-	// err = s.ListenAndServeTLS("","")
+	// Start HTTP server.
 	runtime.GC()
-	err = s.ListenAndServe()
-	fmt.Println(err)
+	srv := &http.Server{
+		Addr:         serverAddr,
+		BaseContext:  func(_ net.Listener) context.Context { return ctx },
+		ReadTimeout:  time.Second,
+		WriteTimeout: 10 * time.Second,
+		Handler:      coHTTPHandler(apiHandlerFn, promhttp.Handler()),
+	}
+	srvErr := make(chan error, 1)
+	go func() {
+		srvErr <- srv.ListenAndServe()
+	}()
+
+	// Wait for interruption.
+	select {
+	case err = <-srvErr:
+		// Error when starting HTTP server.
+		die("Error starting HTTP server:", err)
+		return
+	case <-ctx.Done():
+		// CTRL+C received.
+		slog.Warn("Shutting down...")
+		// Stop receiving signal notifications as soon as possible.
+		stop()
+	}
+
+	// When Shutdown is called, ListenAndServe immediately returns ErrServerClosed.
+	err = srv.Shutdown(context.Background())
+	if err != nil && errors.Is(err, http.ErrServerClosed) {
+		die("Error shutting down HTTP server:", err)
+	}
+}
+
+func coHTTPHandler(mainHandlerFn http.HandlerFunc, promHandler http.Handler) http.Handler {
+	mux := http.NewServeMux()
+
+	// handle is a replacement for mux.Handle
+	// that enriches the handler's HTTP instrumentation with the pattern as the http.route tag
+	handle := func(pattern string, h http.Handler) {
+		handler := otelhttp.WithRouteTag(pattern, h)
+		mux.Handle(pattern, handler)
+	}
+
+	// Register handlers
+	handle("/", http.HandlerFunc(mainHandlerFn))
+	handle("/metrics", promHandler)
+
+	// Add HTTP instrumentation for the whole server
+	handler := otelhttp.NewHandler(mux, "/")
+	return handler
+}
+
+func die(fmt string, args ...interface{}) {
+	slog.Error(fmt, args...)
+	os.Exit(1)
 }
