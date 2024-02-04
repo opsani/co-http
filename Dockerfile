@@ -1,13 +1,14 @@
-FROM golang:1.18-alpine AS builder
+FROM golang:1.21-alpine AS builder
 WORKDIR /src
-COPY http.go go.mod go.sum .
+COPY http.go otel.go go.mod go.sum startup.sh .
+RUN chmod +x startup.sh
 RUN go get -v -d .
-RUN CGO_ENABLED=0 go build http.go
+RUN CGO_ENABLED=0 go build -o co-http
 
-FROM scratch
+FROM alpine:3.19.1
 
-COPY --from=builder /src/http /
+COPY --from=builder /src/co-http /src/startup.sh /
 
 ENV HTTP_ADDR=:8080
 
-ENTRYPOINT ["/http"]
+ENTRYPOINT ["/startup.sh"]
