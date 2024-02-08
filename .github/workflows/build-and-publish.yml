@@ -1,0 +1,51 @@
+name: Build and Publish Container image
+
+on:
+    push:
+        branches: [ otel ]
+    release:
+        types: [published]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        name: Build Container image
+        steps:
+        - name: Check out the repo
+          uses: actions/checkout@v2
+
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v1
+
+        - name: Build Docker image
+          uses: docker/build-push-action@v2
+          with:
+            context: .
+            push: false
+
+    push_to_registry:
+        runs-on: ubuntu-latest
+        name: Push container image to GitHub Packages
+        needs: build
+        if: github.event_name == 'release' && github.event.action == 'published'
+        steps:
+        - name: Check out the repo
+          uses: actions/checkout@v2
+
+        - name: Log in to GitHub Container Registry
+          uses: docker/login-action@v1 
+          with:
+            registry: ghcr.io
+            username: ${{ github.repository_owner }}
+            password: ${{ secrets.GITHUB_TOKEN }}
+
+        - name: Build and push Docker image
+          uses: docker/build-push-action@v2
+          with:
+            context: .
+            push: true
+            tags: ghcr.io/${{ github.repository_owner }}/image-name:${{ github.event.release.tag_name }}
+            labels: |
+                  org.opencontainers.image.title=co-http
+                  org.opencontainers.image.description=Simple workload for testing performance and optimization
+                  org.opencontainers.image.url=github://github.com/${{ github.repository }}/releases/tag/${{ github.event.release.tag_name }}

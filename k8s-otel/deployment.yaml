@@ -1,0 +1,55 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: co-http
+  labels:
+    comp: co-http
+
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      comp: co-http
+  template:
+    metadata:
+      labels:
+        comp: co-http
+    spec:
+      containers:
+      - name: main
+        image: ghcr.io/opsani/co-http:0.7.0-otel
+        args: [ 'busy=400' ]
+        resources:
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        ports:
+          - containerPort: 8080
+        env:
+          - name: OTEL_SERVICE_NAME
+            value: "co-http"
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: "appdynamics-otel-collector-service.appdynamics.svc.cluster.local:4318"
+          - name: OTEL_EXPORTER_OTLP_INSECURE
+            value: "true"
+          - name: OTEL_TRACES_EXPORTER
+            value: "otlp,logging" 
+
+---
+
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: co-http
+
+spec:
+  selector:
+    comp: co-http
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
